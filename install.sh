@@ -158,6 +158,7 @@ CORE_DEPS=(
     "python-dotenv>=0.19.0"
     "prompt-toolkit>=3.0.0"
     "huggingface_hub>=0.16.0"
+    "gguf>=0.1.0"
 )
 
 for dep in "${CORE_DEPS[@]}"; do

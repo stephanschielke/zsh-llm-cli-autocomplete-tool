@@ -1,0 +1,41 @@
+{"input": "genisoimage ", "output": "genisoimage -o image.iso directory/"}
+{"input": "git push", "output": "git push origin main"}
+{"input": "ffmpeg ", "output": "ffmpeg -i input.mp4 output.avi"}
+{"input": "blender ", "output": "blender model.blend"}
+{"input": "abiword ", "output": "abiword document.doc"}
+{"input": "netstat ", "output": "netstat -tulpn"}
+{"input": "imagemagick ", "output": "convert input.jpg output.png"}
+{"input": "less ", "output": "less file.txt"}
+{"input": "export ", "output": "export VAR=value"}
+{"input": "fg ", "output": "fg %1"}
+{"input": "df -", "output": "df -h"}
+{"input": "jobs", "output": "jobs"}
+{"input": "flac ", "output": "flac -d file.flac"}
+{"input": "g++ ", "output": "g++ -o output source.cpp"}
+{"input": "jbig2tox24 ", "output": "jbig2tox24 input.jb2 output.x24"}
+{"input": "jbig2tox16 ", "output": "jbig2tox16 input.jb2 output.x16"}
+{"input": "npm install", "output": "npm install"}
+{"input": "tar -", "output": "tar -czf archive.tar.gz directory/"}
+{"input": "jbig2tox36 ", "output": "jbig2tox36 input.jb2 output.x36"}
+{"input": "screen ", "output": "screen -S session-name"}
+{"input": "digikam ", "output": "digikam"}
+{"input": "chown ", "output": "chown user:group file.txt"}
+{"input": "totem ", "output": "totem video.mp4"}
+{"input": "jbig2toxpm ", "output": "jbig2toxpm input.jb2 output.xpm"}
+{"input": "git add", "output": "git add ."}
+{"input": "gnumeric ", "output": "gnumeric spreadsheet.xls"}
+{"input": "wc -", "output": "wc -l file.txt"}
+{"input": "dd ", "output": "dd if=input of=output"}
+{"input": "history", "output": "history"}
+{"input": "jbig2 ", "output": "jbig2 -b output input.pbm"}
+{"input": "isovfy ", "output": "isovfy -i image.iso"}
+{"input": "cdrdao ", "output": "cdrdao write --device /dev/cdrom image.toc"}
+{"input": "gifsicle ", "output": "gifsicle -O3 input.gif -o output.gif"}
+{"input": "tmux ", "output": "tmux new-session -s session-name"}
+{"input": "expand ", "output": "expand file"}
+{"input": "git status", "output": "git status"}
+{"input": "disown ", "output": "disown %1"}
+{"input": "kubectl delete", "output": "kubectl delete pod pod-name"}
+{"input": "fold ", "output": "fold -w 80 file"}
+{"input": "clang ", "output": "clang -o output source.c"}
+{"input": "qpdf ", "output": "qpdf input.pdf output.pdf"}

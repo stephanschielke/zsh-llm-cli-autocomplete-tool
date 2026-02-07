@@ -1,0 +1,43 @@
+{"input": "curl ", "output": "curl -X GET https://api.example.com"}
+{"input": "jhead ", "output": "jhead image.jpg"}
+{"input": "traceroute ", "output": "traceroute google.com"}
+{"input": "mkisofs ", "output": "mkisofs -o image.iso directory/"}
+{"input": "type ", "output": "type command"}
+{"input": "jbig2tox42 ", "output": "jbig2tox42 input.jb2 output.x42"}
+{"input": "env ", "output": "env"}
+{"input": "docker build", "output": "docker build -t image-name ."}
+{"input": "wait ", "output": "wait %1"}
+{"input": "docker images", "output": "docker images"}
+{"input": "npm start", "output": "npm start"}
+{"input": "which ", "output": "which command"}
+{"input": "sane ", "output": "scanimage -d scanner --resolution 300 --mode Color --format tiff > output.tiff"}
+{"input": "jbig2tox18 ", "output": "jbig2tox18 input.jb2 output.x18"}
+{"input": "vim ", "output": "vim file.txt"}
+{"input": "top", "output": "top"}
+{"input": "jbig2tox45 ", "output": "jbig2tox45 input.jb2 output.x45"}
+{"input": "whereis ", "output": "whereis command"}
+{"input": "perl ", "output": "perl script.pl"}
+{"input": "libreoffice ", "output": "libreoffice document.odt"}
+{"input": "id ", "output": "id"}
+{"input": "python -m", "output": "python -m http.server 8000"}
+{"input": "unexpand ", "output": "unexpand file"}
+{"input": "jbig2tojpg ", "output": "jbig2tojpg input.jb2 output.jpg"}
+{"input": "cargo ", "output": "cargo run"}
+{"input": "avif ", "output": "avifenc input.png output.avif"}
+{"input": "source ", "output": "source file.sh"}
+{"input": "ps aux", "output": "ps aux | grep process"}
+{"input": "jbig2tox31 ", "output": "jbig2tox31 input.jb2 output.x31"}
+{"input": "ar ", "output": "ar rcs lib.a object.o"}
+{"input": "rustc ", "output": "rustc main.rs"}
+{"input": "sort ", "output": "sort file.txt"}
+{"input": "ls -l", "output": "ls -la"}
+{"input": "ls -a", "output": "ls -la"}
+{"input": "jpeg-xl ", "output": "cjxl input.png output.jxl"}
+{"input": "grep ", "output": "grep -r \"pattern\" ."}
+{"input": "cat ", "output": "cat file.txt"}
+{"input": "kill ", "output": "kill -9 pid"}
+{"input": "cmake ", "output": "cmake ."}
+{"input": "xxd ", "output": "xxd file"}
+{"input": "column ", "output": "column -t file"}
+{"input": "ssh ", "output": "ssh user@hostname"}
+{"input": "chmod ", "output": "chmod 755 file.txt"}

@@ -1162,10 +1162,20 @@ Write ONLY the commit message:"""
                     if len(subject) < 3:  # Reduced from 5 to be less strict
                         logger.debug(f"Rejected commit message with too short subject: {commit_message}")
                         return None
-                    # Only reject obvious placeholders in subject
+                    # Reject obvious placeholders and generic messages in subject
                     subject_lower = subject.lower().strip()
-                    if subject_lower in ['message', 'commit message'] or subject_lower == '"commit message"' or subject_lower == "'commit message'":
-                        logger.debug(f"Rejected commit message with placeholder subject: {commit_message}")
+                    rejected_subjects = [
+                        'message', 'commit message', '"commit message"', "'commit message'",
+                        'add new functionality', 'enhance functionality', 'improve functionality',
+                        'update functionality', 'add functionality', 'new feature', 'update feature',
+                        'enhance completion', 'improve completion', 'update completion',
+                        'add feature', 'new functionality'
+                    ]
+                    if subject_lower in rejected_subjects or any(pattern in subject_lower for pattern in [
+                        'add new functionality', 'enhance functionality', 'improve functionality',
+                        'update functionality', 'add functionality', 'new feature', 'update feature'
+                    ]):
+                        logger.warning(f"Rejected generic commit message: {commit_message}")
                         return None
                     # Accept the message if it passes basic validation
                     logger.info(f"✅ Valid commit message generated: {commit_message}")

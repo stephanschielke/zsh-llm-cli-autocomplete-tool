@@ -28,7 +28,22 @@ if TYPE_CHECKING:
 if 'NO_LOCAL_GGUF' not in os.environ:
     sys.path.insert(1, str(Path(__file__).parent / 'gguf-py'))
 import gguf
-from gguf.vocab import MistralTokenizerType, MistralVocab
+try:
+    try:
+    try:
+    from gguf.vocab import MistralTokenizerType, MistralVocab
+except ImportError:
+    # For newer gguf versions, these may not be needed
+    MistralTokenizerType = None
+    MistralVocab = None
+except ImportError:
+    # For newer gguf versions, these may not be needed
+    MistralTokenizerType = None
+    MistralVocab = None
+except ImportError:
+    # For newer gguf versions, these may not be needed
+    MistralTokenizerType = None
+    MistralVocab = None
 
 try:
     from mistral_common.tokens.tokenizers.base import TokenizerVersion # pyright: ignore[reportMissingImports]

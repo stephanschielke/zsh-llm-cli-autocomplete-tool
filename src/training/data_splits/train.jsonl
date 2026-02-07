@@ -1,0 +1,194 @@
+{"input": "jbig2tox43 ", "output": "jbig2tox43 input.jb2 output.x43"}
+{"input": "ls -", "output": "ls -la"}
+{"input": "jbig2tox44 ", "output": "jbig2tox44 input.jb2 output.x44"}
+{"input": "sha256sum ", "output": "sha256sum file"}
+{"input": "jbig2tox20 ", "output": "jbig2tox20 input.jb2 output.x20"}
+{"input": "du -", "output": "du -h"}
+{"input": "go ", "output": "go run main.go"}
+{"input": "cp ", "output": "cp file.txt destination/"}
+{"input": "cd ", "output": "cd ~/projects"}
+{"input": "nohup ", "output": "nohup command &"}
+{"input": "ufraw ", "output": "ufraw image.raw"}
+{"input": "hexdump ", "output": "hexdump -C file"}
+{"input": "jbig2tox15 ", "output": "jbig2tox15 input.jb2 output.x15"}
+{"input": "csplit ", "output": "csplit file /pattern/"}
+{"input": "pngcrush ", "output": "pngcrush input.png output.png"}
+{"input": "node ", "output": "node script.js"}
+{"input": "jbig2tox19 ", "output": "jbig2tox19 input.jb2 output.x19"}
+{"input": "zsh ", "output": "zsh script.sh"}
+{"input": "ghostscript ", "output": "gs -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=output.pdf input.ps"}
+{"input": "join ", "output": "join file1 file2"}
+{"input": "sh ", "output": "sh script.sh"}
+{"input": "isosize ", "output": "isosize /dev/cdrom"}
+{"input": "make ", "output": "make"}
+{"input": "jbig2arith ", "output": "jbig2arith input.pbm output.jb2"}
+{"input": "jbig2tox12 ", "output": "jbig2tox12 input.jb2 output.x12"}
+{"input": "webp ", "output": "cwebp input.png -o output.webp"}
+{"input": "bpg ", "output": "bpgenc input.png -o output.bpg"}
+{"input": "uptime", "output": "uptime"}
+{"input": "exiftool ", "output": "exiftool image.jpg"}
+{"input": "jbig2togif ", "output": "jbig2togif input.jb2 output.gif"}
+{"input": "head ", "output": "head -n 10 file.txt"}
+{"input": "gstreamer ", "output": "gst-launch-1.0 filesrc location=video.mp4 ! decodebin ! autovideosink"}
+{"input": "jbig2tox21 ", "output": "jbig2tox21 input.jb2 output.x21"}
+{"input": "jbig2enc ", "output": "jbig2enc input.pbm output.jb2"}
+{"input": "gscan2pdf ", "output": "gscan2pdf"}
+{"input": "alias ", "output": "alias name='command'"}
+{"input": "shotwell ", "output": "shotwell"}
+{"input": "xsane ", "output": "xsane"}
+{"input": "su ", "output": "su - username"}
+{"input": "systemctl stop", "output": "systemctl stop service-name"}
+{"input": "gcc ", "output": "gcc -o output source.c"}
+{"input": "jbig2tox11 ", "output": "jbig2tox11 input.jb2 output.x11"}
+{"input": "flif ", "output": "flif -e input.png output.flif"}
+{"input": "ssh ", "output": "ssh user@hostname"}
+{"input": "curl -X", "output": "curl -X POST https://api.example.com"}
+{"input": "uniq ", "output": "uniq file.txt"}
+{"input": "unzip ", "output": "unzip archive.zip"}
+{"input": "bg ", "output": "bg %1"}
+{"input": "rawtherapee ", "output": "rawtherapee"}
+{"input": "jbig2tox22 ", "output": "jbig2tox22 input.jb2 output.x22"}
+{"input": "jbig2tox29 ", "output": "jbig2tox29 input.jb2 output.x29"}
+{"input": "mplayer ", "output": "mplayer video.mp4"}
+{"input": "sed ", "output": "sed 's/old/new/g' file.txt"}
+{"input": "sudo ", "output": "sudo command"}
+{"input": "gphoto2 ", "output": "gphoto2 --auto-detect"}
+{"input": "pr ", "output": "pr file"}
+{"input": "pngquant ", "output": "pngquant input.png"}
+{"input": "dcraw ", "output": "dcraw -c image.raw"}
+{"input": "wodim ", "output": "wodim -v dev=/dev/cdrom image.iso"}
+{"input": "systemctl disable", "output": "systemctl disable service-name"}
+{"input": "docker run", "output": "docker run -it --name container image:tag"}
+{"input": "date ", "output": "date"}
+{"input": "kubectl get", "output": "kubectl get pods"}
+{"input": "cpio ", "output": "cpio -o < filelist"}
+{"input": "jbig2topdf ", "output": "jbig2topdf input.jb2 output.pdf"}
+{"input": "jbig2tox40 ", "output": "jbig2tox40 input.jb2 output.x40"}
+{"input": "jbig2tox50 ", "output": "jbig2tox50 input.jb2 output.x50"}
+{"input": "ping ", "output": "ping google.com"}
+{"input": "mt ", "output": "mt -f /dev/tape status"}
+{"input": "python ", "output": "python script.py"}
+{"input": "tail ", "output": "tail -n 10 file.txt"}
+{"input": "objdump ", "output": "objdump -d binary"}
+{"input": "jbig2tox46 ", "output": "jbig2tox46 input.jb2 output.x46"}
+{"input": "cdrecord ", "output": "cdrecord -v dev=/dev/cdrom image.iso"}
+{"input": "python -c", "output": "python -c \"print('hello')\""}
+{"input": "xine ", "output": "xine video.mp4"}
+{"input": "eval ", "output": "eval 'command'"}
+{"input": "nm ", "output": "nm binary"}
+{"input": "git log", "output": "git log --oneline"}
+{"input": "lsof ", "output": "lsof -i :8080"}
+{"input": "zip ", "output": "zip -r archive.zip directory/"}
+{"input": "groups ", "output": "groups"}
+{"input": "jbig2tox48 ", "output": "jbig2tox48 input.jb2 output.x48"}
+{"input": "comm ", "output": "comm file1 file2"}
+{"input": "xpdf ", "output": "xpdf document.pdf"}
+{"input": "jbig2totiff ", "output": "jbig2totiff input.jb2 output.tiff"}
+{"input": "cmp ", "output": "cmp file1 file2"}
+{"input": "mv ", "output": "mv oldname newname"}
+{"input": "killall ", "output": "killall process-name"}
+{"input": "jbig2tox14 ", "output": "jbig2tox14 input.jb2 output.x14"}
+{"input": "mkdir ", "output": "mkdir new-project"}
+{"input": "kubectl apply", "output": "kubectl apply -f file.yaml"}
+{"input": "jbig2sym ", "output": "jbig2sym input.pbm output.jb2"}
+{"input": "awk ", "output": "awk '{print $1}' file.txt"}
+{"input": "jbig2tox27 ", "output": "jbig2tox27 input.jb2 output.x27"}
+{"input": "paste ", "output": "paste file1 file2"}
+{"input": "gocr ", "output": "gocr image.png"}
+{"input": "tesseract ", "output": "tesseract image.png output"}
+{"input": "crontab ", "output": "crontab -e"}
+{"input": "jbig2tox47 ", "output": "jbig2tox47 input.jb2 output.x47"}
+{"input": "isoinfo ", "output": "isoinfo -l -i image.iso"}
+{"input": "exec ", "output": "exec command"}
+{"input": "pdftk ", "output": "pdftk input1.pdf input2.pdf cat output output.pdf"}
+{"input": "jbig2topbm ", "output": "jbig2topbm input.jb2 output.pbm"}
+{"input": "poppler ", "output": "pdftotext input.pdf output.txt"}
+{"input": "jbig2tox39 ", "output": "jbig2tox39 input.jb2 output.x39"}
+{"input": "git pull", "output": "git pull origin main"}
+{"input": "advpng ", "output": "advpng -z -4 input.png"}
+{"input": "at ", "output": "at now + 1 hour"}
+{"input": "jpegtran ", "output": "jpegtran -optimize -progressive -copy none input.jpg output.jpg"}
+{"input": "jbig2tox28 ", "output": "jbig2tox28 input.jb2 output.x28"}
+{"input": "ruby ", "output": "ruby script.rb"}
+{"input": "ps aux", "output": "ps aux | grep process"}
+{"input": "jbig2tox13 ", "output": "jbig2tox13 input.jb2 output.x13"}
+{"input": "sha1sum ", "output": "sha1sum file"}
+{"input": "jbig2tox35 ", "output": "jbig2tox35 input.jb2 output.x35"}
+{"input": "isodump ", "output": "isodump -i image.iso"}
+{"input": "docker ps", "output": "docker ps -a"}
+{"input": "fmt ", "output": "fmt file"}
+{"input": "cuneiform ", "output": "cuneiform image.png -o output.txt"}
+{"input": "systemctl start", "output": "systemctl start service-name"}
+{"input": "file ", "output": "file filename"}
+{"input": "jbig2tox32 ", "output": "jbig2tox32 input.jb2 output.x32"}
+{"input": "mtx ", "output": "mtx -f /dev/changer status"}
+{"input": "strings ", "output": "strings binary"}
+{"input": "git comm", "output": "git commit -m \"commit message\""}
+{"input": "freecad ", "output": "freecad model.fcstd"}
+{"input": "okular ", "output": "okular document.pdf"}
+{"input": "jbig2tox38 ", "output": "jbig2tox38 input.jb2 output.x38"}
+{"input": "jbig2topng ", "output": "jbig2topng input.jb2 output.png"}
+{"input": "od ", "output": "od -c file"}
+{"input": "jbig2tox25 ", "output": "jbig2tox25 input.jb2 output.x25"}
+{"input": "inkscape ", "output": "inkscape image.svg"}
+{"input": "pip list", "output": "pip list"}
+{"input": "npm run", "output": "npm run dev"}
+{"input": "rsync ", "output": "rsync -av source/ dest/"}
+{"input": "cut ", "output": "cut -d',' -f1 file"}
+{"input": "jbig2tox37 ", "output": "jbig2tox37 input.jb2 output.x37"}
+{"input": "ocrad ", "output": "ocrad image.pbm"}
+{"input": "trap ", "output": "trap 'command' SIGNAL"}
+{"input": "gimp ", "output": "gimp image.jpg"}
+{"input": "jbig2tox26 ", "output": "jbig2tox26 input.jb2 output.x26"}
+{"input": "htop", "output": "htop"}
+{"input": "jbig2tox23 ", "output": "jbig2tox23 input.jb2 output.x23"}
+{"input": "pip install", "output": "pip install package-name"}
+{"input": "jbig2tox49 ", "output": "jbig2tox49 input.jb2 output.x49"}
+{"input": "jbig2tox17 ", "output": "jbig2tox17 input.jb2 output.x17"}
+{"input": "base64 ", "output": "base64 file"}
+{"input": "diff ", "output": "diff file1 file2"}
+{"input": "jbig2text ", "output": "jbig2text input.jb2 output.txt"}
+{"input": "evince ", "output": "evince document.pdf"}
+{"input": "jbig2dec ", "output": "jbig2dec input.jb2 output.pbm"}
+{"input": "jbig2tox33 ", "output": "jbig2tox33 input.jb2 output.x33"}
+{"input": "simple-scan ", "output": "simple-scan"}
+{"input": "php ", "output": "php script.php"}
+{"input": "pax ", "output": "pax -w -f archive.tar file1 file2"}
+{"input": "cdparanoia ", "output": "cdparanoia -B"}
+{"input": "jbig2tops ", "output": "jbig2tops input.jb2 output.ps"}
+{"input": "nl ", "output": "nl file"}
+{"input": "scp ", "output": "scp file.txt user@host:/path/"}
+{"input": "systemctl restart", "output": "systemctl restart service-name"}
+{"input": "jbig2toxwd ", "output": "jbig2toxwd input.jb2 output.xwd"}
+{"input": "systemctl enable", "output": "systemctl enable service-name"}
+{"input": "jbig2toeps ", "output": "jbig2toeps input.jb2 output.eps"}
+{"input": "oggenc ", "output": "oggenc input.wav -o output.ogg"}
+{"input": "jbig2tox34 ", "output": "jbig2tox34 input.jb2 output.x34"}
+{"input": "md5sum ", "output": "md5sum file"}
+{"input": "vlc ", "output": "vlc video.mp4"}
+{"input": "darktable ", "output": "darktable"}
+{"input": "qoi ", "output": "qoienc input.png output.qoi"}
+{"input": "split ", "output": "split -l 1000 file"}
+{"input": "more ", "output": "more file.txt"}
+{"input": "jbig2tox41 ", "output": "jbig2tox41 input.jb2 output.x41"}
+{"input": "f-spot ", "output": "f-spot"}
+{"input": "bash ", "output": "bash script.sh"}
+{"input": "whoami", "output": "whoami"}
+{"input": "rm -", "output": "rm -rf directory/"}
+{"input": "heif ", "output": "heif-enc input.png output.heic"}
+{"input": "systemctl ", "output": "systemctl status service"}
+{"input": "passwd ", "output": "passwd username"}
+{"input": "meshlab ", "output": "meshlab model.obj"}
+{"input": "nano ", "output": "nano file.txt"}
+{"input": "jbig2tox30 ", "output": "jbig2tox30 input.jb2 output.x30"}
+{"input": "openscad ", "output": "openscad model.scad -o model.stl"}
+{"input": "lame ", "output": "lame input.wav output.mp3"}
+{"input": "ss ", "output": "ss -tulpn"}
+{"input": "optipng ", "output": "optipng input.png"}
+{"input": "ld ", "output": "ld -o output object.o"}
+{"input": "exiv2 ", "output": "exiv2 image.jpg"}
+{"input": "wget ", "output": "wget https://example.com/file.txt"}
+{"input": "jbig2tosvg ", "output": "jbig2tosvg input.jb2 output.svg"}
+{"input": "tr ", "output": "tr 'a-z' 'A-Z'"}
+{"input": "find ", "output": "find . -name \"*.txt\""}
+{"input": "jbig2toxbm ", "output": "jbig2toxbm input.jb2 output.xbm"}

@@ -12,6 +12,17 @@ AI-powered Zsh plugin with LoRA fine-tuning and personalized command predictions
 - LoRA Fine-tuning: Train custom models for your specific workflow
 - 100% Local: No data leaves your machine
 
+## Using Merged Model
+
+If you want to use the merged LoRA model directly (best performance), see [USE_MERGED_MODEL.md](USE_MERGED_MODEL.md) for detailed instructions.
+
+Quick start:
+```bash
+./use_merged_model.sh
+```
+
+This will convert the merged model to GGUF format and import it to Ollama.
+
 ## Quick Start
 
 **Just 2 steps to get started:**
