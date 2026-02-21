@@ -73,7 +73,7 @@ class HuggingFaceUploader:
         # Check if logged in
         try:
             user = self.api.whoami()
-            print(f"✅ Logged in as: {user.get('name', 'unknown')}")
+            print(f"✅ Logged in as: {user.get('name') or user.get('type') or 'Hugging Face'}")
         except Exception:
             print("🔐 Not logged in. Please login:")
             print("   huggingface-cli login")
@@ -82,7 +82,7 @@ class HuggingFaceUploader:
             try:
                 login()
                 user = self.api.whoami()
-                print(f"✅ Logged in as: {user.get('name', 'unknown')}")
+                print(f"✅ Logged in as: {user.get('name') or user.get('type') or 'Hugging Face'}")
             except Exception as e:
                 print(f"❌ Login failed: {e}")
                 return False
@@ -131,18 +131,17 @@ tags:
 - cli
 - command-completion
 - zsh
-- qwen3
 ---
 
 # CLI Command Completion LoRA Adapter
 
-This is a LoRA (Low-Rank Adaptation) adapter fine-tuned on Qwen3-1.7B for CLI command completion tasks.
+LoRA adapter fine-tuned on {base_model} for CLI command completion (Zsh).
 
 ## Model Details
 
 - **Base Model**: {base_model}
 - **Adapter Type**: LoRA
-- **Task**: CLI Command Completion
+- **Task**: CLI command completion
 - **Training Data**: Zsh command completion pairs
 
 ## Usage
@@ -151,17 +150,10 @@ This is a LoRA (Low-Rank Adaptation) adapter fine-tuned on Qwen3-1.7B for CLI co
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from peft import PeftModel
 
-# Load base model
 base_model = AutoModelForCausalLM.from_pretrained("{base_model}")
 tokenizer = AutoTokenizer.from_pretrained("{base_model}")
-
-# Load LoRA adapter
 model = PeftModel.from_pretrained(base_model, "{repo_id}")
 ```
-
-## Training Details
-
-This adapter was trained for CLI command completion, helping users complete partial Zsh commands intelligently.
 
 ## License
 
@@ -181,8 +173,8 @@ def main():
     )
     parser.add_argument(
         '--repo-id', '-r',
-        required=True,
-        help='HuggingFace repository ID (e.g., username/repo-name)'
+        default=None,
+        help='HuggingFace repository ID (e.g., username/zsh-cli-lora). Required unless HF_REPO_ID env is set.'
     )
     parser.add_argument(
         '--private',
@@ -202,6 +194,12 @@ def main():
     
     args = parser.parse_args()
     
+    repo_id = args.repo_id or os.environ.get("HF_REPO_ID")
+    if not repo_id:
+        print("❌ Please set repo ID via --repo-id YOUR_USERNAME/zsh-cli-lora or HF_REPO_ID env")
+        print("   Example: python -m training.upload_to_hf --repo-id duoyun/zsh-cli-lora")
+        sys.exit(1)
+    
     # Resolve adapter path
     adapter_path = Path(args.adapter)
     if not adapter_path.is_absolute():
@@ -214,14 +212,14 @@ def main():
         sys.exit(1)
     
     success = uploader.upload(
-        repo_id=args.repo_id,
+        repo_id=repo_id,
         private=args.private,
         commit_message=args.commit_message
     )
     
     if success:
         # Optionally create README
-        readme_content = uploader.create_readme(args.repo_id, args.base_model)
+        readme_content = uploader.create_readme(repo_id, args.base_model)
         readme_path = adapter_path / "README.md"
         with open(readme_path, 'w') as f:
             f.write(readme_content)

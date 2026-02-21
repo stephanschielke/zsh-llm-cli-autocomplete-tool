@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 """
 Import fine-tuned LoRA model into Ollama.
-Converts the LoRA adapter to Ollama format and creates a model that can be served.
+
+Workflow (so Ollama has both base + adapter for autocomplete):
+  1. Download LoRA adapter from Hugging Face (e.g. duoyuncloud/zsh-cli-lora).
+  2. Load base model from Hugging Face (e.g. Qwen/Qwen2-0.5B) via transformers.
+  3. Merge adapter into base model, save merged model.
+  4. Convert merged model to GGUF (for Ollama).
+  5. Create Ollama model from GGUF so the server runs the single merged model (base+adapter).
 """
 
 import os
@@ -84,7 +90,7 @@ class OllamaLoRAImporter:
         try:
             with open(config_file) as f:
                 config = json.load(f)
-            return config.get("base_model_name_or_path", "Qwen/Qwen3-1.7B")
+            return config.get("base_model_name_or_path", "Qwen/Qwen2-0.5B")
         except Exception as e:
             logger.error(f"Failed to read adapter config: {e}")
             return None
@@ -93,6 +99,8 @@ class OllamaLoRAImporter:
         """Map Hugging Face model name to Ollama model name."""
         # Mapping from HF model names to Ollama model names
         model_mapping = {
+            "Qwen/Qwen2-0.5B": "qwen2:0.5b",
+            "Qwen/Qwen2.5-0.5B-Instruct": "qwen2.5:0.5b",
             "Qwen/Qwen3-1.7B": "qwen3:1.7b",
             "Qwen/Qwen3-1.7B-Instruct": "qwen3:1.7b",
             "distilgpt2": "tinyllama",
@@ -108,19 +116,19 @@ class OllamaLoRAImporter:
         if hf_model_name in model_mapping:
             return model_mapping[hf_model_name]
         
-        # Check if it's a Qwen model
+        # Check if it's a Qwen2 0.5B model
+        if "qwen2" in hf_model_name.lower() and "0.5" in hf_model_name:
+            return "qwen2:0.5b"
         if "qwen" in hf_model_name.lower() or "Qwen" in hf_model_name:
             return "qwen3:1.7b"
-        
         # Default fallback
-        return "qwen3:1.7b"
+        return "qwen2:0.5b"
     
     def create_ollama_modelfile(self) -> Optional[str]:
         """Create Ollama Modelfile for the fine-tuned model.
         
-        Note: Ollama doesn't support Qwen3ForCausalLM architecture directly.
-        We use the base model (qwen3:1.7b) from Ollama and encode the LoRA
-        fine-tuning knowledge in optimized system prompts.
+        Fallback when merged GGUF is not used: base model from Ollama with
+        system prompts that encode LoRA-style completion behavior.
         
         The prompts are designed based on the training data patterns to
         guide the model to generate appropriate command completions.
@@ -292,34 +300,33 @@ PARAMETER repeat_penalty 1.1
             logger.info("💡 Try starting Ollama: ollama serve")
             # Don't fail here - Ollama might start during import
         
-        # Ensure base model (qwen3:1.7b) is available in Ollama
-        logger.info("📥 Ensuring base model qwen3:1.7b is available in Ollama...")
+        # Ensure base model is available in Ollama (from adapter config, e.g. qwen2:0.5b or qwen3:1.7b)
+        hf_base = self.get_base_model_name() or "Qwen/Qwen2-0.5B"
+        ollama_base = self.get_ollama_model_name(hf_base)
+        logger.info(f"📥 Ensuring base model {ollama_base} is available in Ollama...")
         try:
             import requests
             response = requests.get("http://localhost:11434/api/tags", timeout=5)
             if response.status_code == 200:
                 models = response.json().get('models', [])
                 model_names = [m.get('name', '') for m in models]
-                qwen_available = any('qwen3' in name.lower() and '1.7b' in name.lower() for name in model_names)
-                
-                if not qwen_available:
-                    logger.info("   qwen3:1.7b not found, pulling from Ollama library...")
+                base_available = any(ollama_base.split(':')[0] in name.lower() for name in model_names)
+                if not base_available:
+                    logger.info(f"   {ollama_base} not found, pulling from Ollama library...")
                     pull_result = subprocess.run(
-                        ['ollama', 'pull', 'qwen3:1.7b'],
+                        ['ollama', 'pull', ollama_base],
                         capture_output=True,
                         text=True,
-                        timeout=600  # 10 minutes for download
+                        timeout=600
                     )
                     if pull_result.returncode == 0:
-                        logger.info("   ✅ qwen3:1.7b pulled successfully")
+                        logger.info(f"   ✅ {ollama_base} pulled successfully")
                     else:
-                        logger.warning(f"   ⚠️  Failed to pull qwen3:1.7b: {pull_result.stderr}")
-                        logger.info("   Will try to use it anyway (Ollama may pull it automatically)")
+                        logger.warning(f"   ⚠️  Failed to pull {ollama_base}: {pull_result.stderr}")
                 else:
-                    logger.info("   ✅ qwen3:1.7b already available")
+                    logger.info(f"   ✅ {ollama_base} already available")
         except Exception as e:
-            logger.warning(f"   ⚠️  Could not check/pull qwen3:1.7b: {e}")
-            logger.info("   Will try to use it anyway (Ollama may pull it automatically)")
+            logger.warning(f"   ⚠️  Could not check/pull base model: {e}")
         
         model_path = None
         modelfile_content = None
@@ -364,7 +371,7 @@ PARAMETER repeat_penalty 1.1
                                 logger.info("   Will attempt to import - if it fails, will fallback to base model")
                             except Exception as e:
                                 logger.warning(f"   ⚠️  Could not create modelfile for HF format: {e}")
-                                logger.info("💡 Will use base model (qwen3:1.7b) with LoRA knowledge in optimized prompts")
+                                logger.info("💡 Will use base model with prompts only (merged model saved at zsh-model-merged/)")
                                 logger.info("💡 The merged model is saved at zsh-model-merged/ for manual conversion")
                                 use_merged_model = False  # Use base model approach
                 else:
@@ -396,37 +403,33 @@ PARAMETER repeat_penalty 1.1
             logger.error(f"❌ Failed to write Modelfile: {e}")
             return False
         
-        # Create model in Ollama
+        # Create model in Ollama (merged = base+adapter from HF in one model)
+        ollama_base = self.get_ollama_model_name(self.get_base_model_name() or "Qwen/Qwen2-0.5B")
         try:
             logger.info(f"🚀 Creating Ollama model: {self.model_name}")
             if use_merged_model and model_path:
-                logger.info(f"   Using merged LoRA model from: {model_path}")
+                logger.info(f"   Using merged model (base + adapter from Hugging Face): {model_path}")
                 if model_path.is_file() and model_path.suffix == '.gguf':
-                    logger.info("   ✅ Using GGUF format (fully merged LoRA adapter)")
+                    logger.info("   ✅ GGUF format: Ollama will run base+adapter as one model")
                 else:
-                    logger.info("   ⚠️  Using HF format (may not work if Ollama doesn't support Qwen3)")
+                    logger.info("   ⚠️  HF format (Ollama may require GGUF)")
             else:
-                logger.info("   Using base model (qwen3:1.7b) with optimized prompts")
-                logger.info("   The LoRA adapter knowledge is encoded in the system prompts")
+                logger.info(f"   Fallback: base model ({ollama_base}) with prompts only (no adapter weights)")
             
             result = subprocess.run(
                 ['ollama', 'create', self.model_name, '-f', str(modelfile_path)],
                 capture_output=True,
                 text=True,
-                timeout=600  # Increased timeout for model import
+                timeout=600
             )
             
             if result.returncode == 0:
                 if use_merged_model and model_path:
-                    logger.info(f"✅ Model {self.model_name} created successfully with merged LoRA adapter!")
+                    logger.info(f"✅ Model {self.model_name} created: Ollama has base+adapter (from Hugging Face)")
                     if model_path.is_file() and model_path.suffix == '.gguf':
-                        logger.info("   ✅ Using fully merged LoRA adapter in GGUF format")
-                    else:
-                        logger.info("   ✅ Using merged LoRA adapter in HF format")
+                        logger.info("   ✅ Merged GGUF loaded for autocomplete")
                 else:
-                    logger.info(f"✅ Model {self.model_name} created successfully!")
-                    logger.info("   Using base qwen3:1.7b with LoRA knowledge in system prompts")
-                # Clean up Modelfile
+                    logger.info(f"✅ Model {self.model_name} created (base {ollama_base} only)")
                 if modelfile_path.exists():
                     modelfile_path.unlink()
                 return True
@@ -436,45 +439,46 @@ PARAMETER repeat_penalty 1.1
                 if result.stdout:
                     logger.error(f"stdout: {result.stdout}")
                 
-                # Check if it's an architecture error (trying to import HF format directly)
-                if "unsupported architecture" in error_msg:
-                    logger.warning("⚠️  Cannot import Hugging Face format Qwen3 model directly")
-                    logger.info("💡 Ollama supports Qwen3, but needs to use FROM qwen3:1.7b instead")
-                    logger.info("💡 Falling back to base model (qwen3:1.7b) with optimized prompts...")
-                    
-                    # Try again with base model approach
-                    if use_merged_model:
-                        logger.info("🔄 Retrying with base model (qwen3:1.7b) + optimized prompts...")
-                        fallback_modelfile = self.create_ollama_modelfile()
-                        if fallback_modelfile:
-                            try:
-                                with open(modelfile_path, 'w') as f:
-                                    f.write(fallback_modelfile)
-                                
-                                result = subprocess.run(
-                                    ['ollama', 'create', self.model_name, '-f', str(modelfile_path)],
-                                    capture_output=True,
-                                    text=True,
-                                    timeout=600
-                                )
-                                
-                                if result.returncode == 0:
-                                    logger.info(f"✅ Model {self.model_name} created successfully!")
-                                    logger.info("   Using base qwen3:1.7b with LoRA knowledge encoded in system prompts")
-                                    logger.info("   The merged model is saved at zsh-model-merged/ for future use")
-                                    if modelfile_path.exists():
-                                        modelfile_path.unlink()
-                                    return True
-                                else:
-                                    logger.error(f"❌ Fallback also failed: {result.stderr}")
-                            except Exception as e:
-                                logger.error(f"❌ Fallback failed: {e}")
+                # If model already exists and we have merged GGUF, replace it so Ollama uses base+adapter
+                if ("already exists" in error_msg or "model already exists" in error_msg) and use_merged_model and model_path and model_path.is_file() and model_path.suffix == '.gguf':
+                    logger.info(f"   Replacing existing {self.model_name} with merged model (base+adapter)...")
+                    subprocess.run(['ollama', 'rm', self.model_name], capture_output=True, timeout=30)
+                    result = subprocess.run(
+                        ['ollama', 'create', self.model_name, '-f', str(modelfile_path)],
+                        capture_output=True,
+                        text=True,
+                        timeout=600
+                    )
+                    if result.returncode == 0:
+                        logger.info(f"✅ Model {self.model_name} updated with merged base+adapter from Hugging Face")
+                        if modelfile_path.exists():
+                            modelfile_path.unlink()
+                        return True
+                    logger.error(f"❌ Retry failed: {result.stderr}")
                 
-                # Check if model already exists
                 if "already exists" in error_msg or "model already exists" in error_msg:
-                    logger.info(f"ℹ️  Model {self.model_name} already exists. You may need to remove it first:")
-                    logger.info(f"   ollama rm {self.model_name}")
-                    logger.info(f"   Then run the import again")
+                    logger.info(f"   To replace with merged model: ollama rm {self.model_name} then run import again")
+                
+                # Fallback only if merged GGUF failed (e.g. unsupported architecture)
+                if "unsupported architecture" in error_msg and use_merged_model:
+                    logger.warning("⚠️  Ollama could not load merged model directly")
+                    logger.info(f"💡 Falling back to base ({ollama_base}) with prompts; merged model saved at zsh-model-merged/")
+                    fallback_modelfile = self.create_ollama_modelfile()
+                    if fallback_modelfile:
+                        try:
+                            with open(modelfile_path, 'w') as f:
+                                f.write(fallback_modelfile)
+                            result = subprocess.run(
+                                ['ollama', 'create', self.model_name, '-f', str(modelfile_path)],
+                                capture_output=True, text=True, timeout=600
+                            )
+                            if result.returncode == 0:
+                                logger.info(f"✅ Model {self.model_name} created (base only)")
+                                if modelfile_path.exists():
+                                    modelfile_path.unlink()
+                                return True
+                        except Exception as e:
+                            logger.error(f"❌ Fallback failed: {e}")
                 return False
                 
         except subprocess.TimeoutExpired:
@@ -726,8 +730,8 @@ PARAMETER repeat_penalty 1.1
             
             base_model_name = self.get_base_model_name()
             if not base_model_name:
-                logger.warning("Could not determine base model, using Qwen/Qwen3-1.7B")
-                base_model_name = "Qwen/Qwen3-1.7B"
+                logger.warning("Could not determine base model, using Qwen/Qwen2-0.5B")
+                base_model_name = "Qwen/Qwen2-0.5B"
             
             logger.info(f"📥 Loading base model: {base_model_name}")
             
@@ -791,9 +795,14 @@ PARAMETER repeat_penalty 1.1
             if tokenizer.pad_token is None:
                 tokenizer.pad_token = tokenizer.eos_token
             
-            # Load LoRA adapter
-            logger.info("📦 Loading LoRA adapter...")
-            model = PeftModel.from_pretrained(base_model, str(self.lora_output_dir))
+            # Load LoRA adapter (local path: use local_files_only so PEFT does not treat as HF repo)
+            logger.info("📦 Loading LoRA adapter from %s...", self.lora_output_dir)
+            model = PeftModel.from_pretrained(
+                base_model,
+                str(self.lora_output_dir),
+                is_trainable=False,
+                local_files_only=True,
+            )
             
             # Merge adapter into base model
             logger.info("🔗 Merging LoRA adapter into base model...")
@@ -829,7 +838,7 @@ PARAMETER repeat_penalty 1.1
             # If GGUF conversion failed, return merged dir (but Ollama may not support HF format Qwen3)
             logger.warning("⚠️  GGUF conversion failed or not available")
             logger.info(f"💡 Merged model saved at: {merged_dir}")
-            logger.info("💡 Will attempt to use it, but Ollama may not support HF format Qwen3")
+            logger.info("💡 Will attempt to use it; Ollama may require GGUF for this architecture")
             return merged_dir
             
         except ImportError:

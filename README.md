@@ -12,58 +12,47 @@ AI-powered Zsh plugin with LoRA fine-tuning and personalized command predictions
 - LoRA Fine-tuning: Train custom models for your specific workflow
 - 100% Local: No data leaves your machine
 
-## Using Merged Model
+## Quick Start (one-click)
 
-If you want to use the merged LoRA model directly (best performance), see [USE_MERGED_MODEL.md](USE_MERGED_MODEL.md) for detailed instructions.
-
-Quick start:
-```bash
-./use_merged_model.sh
-```
-
-This will convert the merged model to GGUF format and import it to Ollama.
-
-## Quick Start
-
-**Just 2 steps to get started:**
+**Use the fine-tuned model right after cloning:**
 
 ```bash
-# 1. Clone and install (automatically downloads pre-trained model)
+# 1. Clone and run the installer
 git clone https://github.com/duoyuncloud/zsh-llm-cli-autocomplete-tool.git
 cd zsh-llm-cli-autocomplete-tool
 ./install.sh
 
-# 2. Reload shell and start using!
+# 2. Reload your shell
 source ~/.zshrc
-
-# That's it! Now try:
-git comm[Tab]     # Smart commit: generates commit message from git diff
-docker run[Tab]   # Personalized completion based on your history
-npm run[Tab]      # Smart predictions based on workflow
 ```
 
-The installation script automatically:
-- Installs all dependencies
-- Sets up Ollama server
-- Downloads the pre-trained LoRA adapter from Hugging Face
-- Downloads the base model (Qwen3-1.7B)
-- Merges the adapter with the base model
-- Imports everything to Ollama as `zsh-assistant`
-- Configures the Zsh plugin
+After that, Tab completion uses the **pre-trained LoRA model** ([duoyuncloud/zsh-cli-lora](https://huggingface.co/duoyuncloud/zsh-cli-lora)) with no extra setup.
 
-**No additional setup needed!** Just install and reload your shell.
+**What the installer does:**
+- Creates a Python venv and installs runtime + model-import deps (no heavy training stack by default)
+- Installs and starts Ollama
+- Downloads the fine-tuned LoRA adapter from Hugging Face (Qwen2-0.5B base)
+- Merges adapter with base model and imports to Ollama as `zsh-assistant`
+- Adds the Zsh plugin to your `~/.zshrc` and PATH
 
-**Note**: The first installation may take 5-15 minutes depending on your internet speed (downloading models). Subsequent terminal sessions will use the cached model.
+**Try it:** Type a command and press Tab, e.g. `git comm[Tab]`, `docker run[Tab]`, `npm run[Tab]`.
+
+**Note:** First run can take 5–15 minutes (downloading models). Later sessions use the cached model.
 
 ## Installation
 
-### One-Click Installation
+### One-click (recommended)
+
+From a fresh clone, one command sets up autocompletion with the fine-tuned model:
 
 ```bash
 git clone https://github.com/duoyuncloud/zsh-llm-cli-autocomplete-tool.git
 cd zsh-llm-cli-autocomplete-tool
 ./install.sh
+source ~/.zshrc   # then use Tab completion
 ```
+
+To also install the full training stack (axolotl, etc.) for LoRA training: `INSTALL_TRAINING_DEPS=1 ./install.sh`
 
 ### Manual Installation
 
@@ -127,6 +116,39 @@ ai-completion-data      # Generate training data
 **Important**: The pre-trained model is automatically downloaded and set up during `./install.sh`. You don't need to run `ai-completion-setup` manually unless you want to re-download the model or use a different one.
 
 The pre-trained model repository is configured in `config/default.yaml` via the `hf_lora_repo` setting. If you want to use a different model or train your own, see the [LoRA Fine-tuning](#lora-fine-tuning) section.
+
+### Testing the merged model directly
+
+You can talk to the merged model (base + adapter in Ollama as `zsh-assistant`) without the Zsh plugin:
+
+**1. Ollama CLI (interactive chat)**  
+```bash
+ollama run zsh-assistant
+```
+Then type a partial command, e.g. `git ad`, and see how it completes.
+
+**2. One-shot completion (same prompt as Tab)**  
+```bash
+python scripts/chat_merged_model.py "git ad"
+```
+Prints the raw model response and latency.
+
+**3. Interactive loop**  
+```bash
+python scripts/chat_merged_model.py
+```
+Type partial commands at the `>` prompt; each reply is the model’s completion.
+
+**4. Raw API (curl)**  
+```bash
+curl -s http://localhost:11434/api/generate -d '{
+  "model": "zsh-assistant",
+  "prompt": "Complete the command. One line only.\ngit ad",
+  "stream": false,
+  "options": {"temperature": 0.1, "num_predict": 32}
+}'
+```
+The completion is in the JSON field `"response"`.
 
 ## LoRA Fine-tuning
 

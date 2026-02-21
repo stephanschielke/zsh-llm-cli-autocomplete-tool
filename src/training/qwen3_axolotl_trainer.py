@@ -172,6 +172,8 @@ class Qwen3AxolotlTrainer:
             has_gpu = False
         
         # Adjust configuration based on available resources
+        # On CPU/MPS: no sample_packing (avoids ProcessPoolExecutor), smaller LoRA
+        use_cpu_or_low = not has_gpu or low_memory
         if low_memory:
             micro_batch_size = 1
             gradient_accumulation = 8
@@ -203,6 +205,10 @@ class Qwen3AxolotlTrainer:
             ]
             val_set_size = 0.1
         
+        # On CPU/low-memory use smaller LoRA to reduce memory and avoid OOM
+        if use_cpu_or_low:
+            lora_r, lora_alpha = 8, 16
+        
         # Qwen3-specific LoRA target modules
         # Qwen3 uses similar architecture to Qwen2, targeting attention and MLP layers
         lora_target_modules = [
@@ -230,8 +236,9 @@ class Qwen3AxolotlTrainer:
             "lora_modules_to_save": ["embed_tokens", "lm_head"],
             
             # Training configuration
+            # Disable sample_packing on CPU to avoid ProcessPoolExecutor (permission/multiprocessing issues)
             "sequence_len": sequence_len,
-            "sample_packing": True,
+            "sample_packing": has_gpu and not low_memory,
             "pad_to_sequence_len": True,
             
             "micro_batch_size": micro_batch_size,
@@ -253,11 +260,11 @@ class Qwen3AxolotlTrainer:
             "gradient_checkpointing": True,
             "group_by_length": False,
             
-            # Logging and saving
+            # Logging and saving (save often so we keep checkpoints if run is long)
             "logging_steps": 10,
-            "save_steps": 200,
+            "save_steps": 15,
             "save_safetensors": True,
-            "save_total_limit": 3,
+            "save_total_limit": 2,
             
             # Early stopping (only if using validation split, not separate val dataset)
             "early_stopping_patience": 3 if not use_split_data else None,
@@ -322,12 +329,16 @@ class Qwen3AxolotlTrainer:
         ]
         
         try:
+            # Force CPU for Axolotl subprocess to avoid MPS OOM on Apple Silicon
+            run_env = os.environ.copy()
+            run_env["PYTORCH_MPS_DISABLE"] = "1"
+            run_env.setdefault("AXOLOTL_DO_NOT_TRACK", "1")
             print("⏳ Training in progress... This may take 30 minutes to 2 hours.")
             print("💡 You can monitor progress in the logs above.")
             print("   Look for decreasing loss values to track training progress.")
             print("-" * 50)
             
-            result = subprocess.run(cmd, check=True)
+            result = subprocess.run(cmd, check=True, env=run_env)
             
             training_time = time.time() - self.training_start_time
             print(f"✅ Training completed in {training_time/60:.1f} minutes!")

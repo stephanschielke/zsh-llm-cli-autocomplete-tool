@@ -4,6 +4,7 @@
 import argparse
 import sys
 import os
+import re
 from typing import Dict, Optional
 
 # Add the src directory to the path so we can import our modules
@@ -11,23 +12,66 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 src_dir = os.path.join(script_dir, '..')
 sys.path.insert(0, os.path.abspath(src_dir))
 
-from model_completer.enhanced_completer import EnhancedCompleter
-from model_completer.client import OllamaClient
 from model_completer.utils import load_config, setup_logging
-from model_completer.training import create_trainer
+from model_completer.client import OllamaClient
+
+
+# Same instruction as chat_merged_model.py — model just completes the command.
+_COMPLETION_SYSTEM = (
+    "You are a shell command completion assistant. "
+    "Given a partial command, reply with ONLY the completed full command on one line. "
+    "No explanation, no prefix like 'Complete:' or 'The command is:', no markdown. Just the command."
+)
+
+
+def _fast_completion(command: str, url: str, model: str, timeout: int = 3) -> Optional[str]:
+    """Merged model only. System prompt + partial command -> one completed line."""
+    import requests
+    data = {
+        "model": model,
+        "system": _COMPLETION_SYSTEM,
+        "prompt": command.strip(),
+        "stream": False,
+        "options": {"temperature": 0.1, "num_predict": 48, "num_ctx": 512},
+    }
+    try:
+        r = requests.post(f"{url.rstrip('/')}/api/generate", json=data, timeout=timeout)
+        if r.status_code != 200:
+            return None
+        text = (r.json().get("response") or "").strip()
+        if not text or len(text) <= len(command):
+            return None
+        # First line that looks like a command (extends input or same base command)
+        prefix = command.rstrip()
+        first = (command.split() or [""])[0]
+        for line in text.split("\n"):
+            line = line.strip().replace("```", "").strip()
+            if not line or len(line) <= len(command):
+                continue
+            if any(line.startswith(x) for x in ("Complete", "Output", "The ", "Sure,", "Here")):
+                continue
+            if prefix and line.startswith(prefix):
+                return line
+            if first and line.startswith(first):
+                return line
+        return text.split("\n")[0].strip() if text else None
+    except Exception:
+        return None
+
 
 def get_ai_completion(command: str, config: Optional[Dict] = None) -> str:
     """Get AI completion using enhanced completer with personalization."""
+    from model_completer.utils import load_config
+    from model_completer.enhanced_completer import EnhancedCompleter
     if config is None:
         config = load_config()
-    
     completer = EnhancedCompleter(
         ollama_url=config.get('ollama', {}).get('url', 'http://localhost:11434'),
         model=config.get('model', 'zsh-assistant'),
         config=config
     )
-    
     return completer.get_completion(command)
+
 
 def main():
     parser = argparse.ArgumentParser(description='AI Command Completion - Simple Tab completion with personalized predictions')
@@ -65,6 +109,7 @@ def main():
         else:
             print("Could not connect to Ollama server")
     elif args.train:
+        from model_completer.training import create_trainer
         print("🚀 Starting LoRA training...")
         trainer = create_trainer()
         data_file = "src/training/zsh_training_data.jsonl"
@@ -157,48 +202,19 @@ def main():
             print("   3. Run: huggingface-cli login (or set HF_TOKEN env var)")
             sys.exit(1)
     elif args.test:
-        print("Testing AI completions:")
-        test_commands = ["git comm", "docker run", "npm run", "python -m", "kubectl get"]
-        for cmd in test_commands:
-            completion = get_ai_completion(cmd, config)
-            print(f"  {cmd} -> {completion}")
+        print("Testing merged model (zsh-assistant) only:")
+        url = config.get('ollama', {}).get('url', 'http://localhost:11434')
+        model = config.get('model', 'zsh-assistant')
+        for cmd in ["git ad", "git comm", "docker run", "npm run", "kubectl get"]:
+            completion = _fast_completion(cmd, url, model)
+            print(f"  {cmd} -> {completion or cmd}")
     elif args.command:
-        completion = get_ai_completion(args.command, config)
-        if completion and completion != args.command:
-            import re
-            completion = completion.strip()
-            lines = completion.split('\n')
-            output_line = None
-            for line in lines:
-                line = line.strip()
-                if re.match(r'^(Output|output):', line, re.IGNORECASE):
-                    output_line = re.sub(r'^(Output|output):\s*', '', line, flags=re.IGNORECASE).strip()
-                    break
-            
-            if output_line:
-                completion = output_line
-            else:
-                completion = re.sub(r'^(Input|Output|input|output):\s*', '', completion, flags=re.IGNORECASE).strip()
-                completion = completion.split('\n')[0].strip()
-            
-            if '"' in completion:
-                parts = completion.split('"')
-                if len(parts) >= 3:
-                    parts[1] = re.sub(r'\s*\(Added by[^)]*\)', '', parts[1])
-                    parts[1] = re.sub(r'^\s*Conventional Commit Message:\s*', '', parts[1], flags=re.IGNORECASE).strip()
-                    if not parts[1] or parts[1].isspace():
-                        completion = args.command
-                    else:
-                        completion = '"'.join(parts)
-            else:
-                completion = re.sub(r'\s*\(Added by[^)]*\)\s*$', '', completion)
-                completion = re.sub(r'\s*Conventional Commit Message:.*$', '', completion, flags=re.IGNORECASE)
-            
-            completion = completion.strip()
-            if completion == args.command or len(completion) <= len(args.command):
-                completion = args.command
-            
-            print(completion, flush=True)
+        # Tab: merged model only, no enhanced completer
+        url = config.get('ollama', {}).get('url', 'http://localhost:11434')
+        model = config.get('model', 'zsh-assistant')
+        completion = _fast_completion(args.command, url, model)
+        if completion and len(completion) > len(args.command):
+            print(completion.split('\n')[0].strip(), flush=True)
         else:
             print(args.command, flush=True)
     else:

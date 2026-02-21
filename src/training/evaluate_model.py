@@ -40,6 +40,14 @@ class ModelEvaluator:
             print(f"❌ Adapter directory not found: {self.adapter_path}")
             return False
         
+        adapter_weights = self.adapter_path / "adapter_model.safetensors"
+        if not adapter_weights.exists():
+            adapter_weights = self.adapter_path / "adapter_model.bin"
+        if not adapter_weights.exists():
+            print(f"❌ No adapter weights found in {self.adapter_path}")
+            print("   Expected adapter_model.safetensors or adapter_model.bin (run training first).")
+            return False
+        
         print(f"📦 Loading base model: {self.base_model}")
         print(f"📦 Loading adapter from: {self.adapter_path}")
         
@@ -62,9 +70,14 @@ class ModelEvaluator:
             if self.tokenizer.pad_token is None:
                 self.tokenizer.pad_token = self.tokenizer.eos_token
             
-            # Load LoRA adapter
+            # Load LoRA adapter (local path: require local_files_only so PEFT doesn't treat path as HF repo_id)
             print("📥 Loading LoRA adapter...")
-            self.model = PeftModel.from_pretrained(self.model, str(self.adapter_path))
+            self.model = PeftModel.from_pretrained(
+                self.model,
+                str(self.adapter_path),
+                is_trainable=False,
+                local_files_only=True,
+            )
             self.model.eval()
             
             print("✅ Model loaded successfully")

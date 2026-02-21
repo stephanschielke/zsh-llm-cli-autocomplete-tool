@@ -1,7 +1,7 @@
 {
   "total": 43,
-  "exact_matches": 1,
-  "command_matches": 19,
-  "exact_accuracy": 0.023255813953488372,
-  "command_accuracy": 0.4418604651162791
+  "exact_matches": 7,
+  "command_matches": 21,
+  "exact_accuracy": 0.16279069767441862,
+  "command_accuracy": 0.4883720930232558
 }
