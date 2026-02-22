@@ -13,30 +13,14 @@ import time
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(PROJECT_ROOT, "src"))
 
-OLLAMA_URL = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
-MODEL = "zsh-assistant"
-
-# Single system prompt: model just completes the command, nothing else.
-SYSTEM = (
-    "You are a shell command completion assistant. "
-    "Given a partial command, reply with ONLY the completed full command on one line. "
-    "No explanation, no prefix like 'Complete:' or 'The command is:', no markdown. "
-    "Just the command."
-)
-
-
-def ask(partial_command: str, stream: bool = False) -> str:
-    import requests
-    data = {
-        "model": MODEL,
-        "system": SYSTEM,
-        "prompt": partial_command.strip(),
-        "stream": stream,
-        "options": {"temperature": 0.1, "num_predict": 48, "num_ctx": 512},
-    }
-    r = requests.post(f"{OLLAMA_URL.rstrip('/')}/api/generate", json=data, timeout=30)
-    r.raise_for_status()
-    return (r.json().get("response") or "").strip()
+def ask(partial_command: str) -> str:
+    from model_completer.utils import load_config
+    from model_completer.ollama_complete import complete, SYSTEM
+    config = load_config()
+    url = config.get("ollama", {}).get("url", "http://localhost:11434")
+    model = config.get("model", "zsh-assistant")
+    out = complete(partial_command.strip(), url, model, timeout=30)
+    return out or ""
 
 
 def main():
@@ -50,6 +34,7 @@ def main():
     if len(sys.argv) > 1:
         cmd = " ".join(sys.argv[1:])
         print("Partial command:", repr(cmd))
+        from model_completer.ollama_complete import SYSTEM
         print("System:", SYSTEM[:80] + "...")
         print()
         t0 = time.perf_counter()

@@ -14,49 +14,12 @@ sys.path.insert(0, os.path.abspath(src_dir))
 
 from model_completer.utils import load_config, setup_logging
 from model_completer.client import OllamaClient
-
-
-# Same instruction as chat_merged_model.py — model just completes the command.
-_COMPLETION_SYSTEM = (
-    "You are a shell command completion assistant. "
-    "Given a partial command, reply with ONLY the completed full command on one line. "
-    "No explanation, no prefix like 'Complete:' or 'The command is:', no markdown. Just the command."
-)
+from model_completer.ollama_complete import complete as _ollama_complete
 
 
 def _fast_completion(command: str, url: str, model: str, timeout: int = 3) -> Optional[str]:
-    """Merged model only. System prompt + partial command -> one completed line."""
-    import requests
-    data = {
-        "model": model,
-        "system": _COMPLETION_SYSTEM,
-        "prompt": command.strip(),
-        "stream": False,
-        "options": {"temperature": 0.1, "num_predict": 48, "num_ctx": 512},
-    }
-    try:
-        r = requests.post(f"{url.rstrip('/')}/api/generate", json=data, timeout=timeout)
-        if r.status_code != 200:
-            return None
-        text = (r.json().get("response") or "").strip()
-        if not text or len(text) <= len(command):
-            return None
-        # First line that looks like a command (extends input or same base command)
-        prefix = command.rstrip()
-        first = (command.split() or [""])[0]
-        for line in text.split("\n"):
-            line = line.strip().replace("```", "").strip()
-            if not line or len(line) <= len(command):
-                continue
-            if any(line.startswith(x) for x in ("Complete", "Output", "The ", "Sure,", "Here")):
-                continue
-            if prefix and line.startswith(prefix):
-                return line
-            if first and line.startswith(first):
-                return line
-        return text.split("\n")[0].strip() if text else None
-    except Exception:
-        return None
+    """Merged model only; delegates to ollama_complete."""
+    return _ollama_complete(command, url, model, timeout)
 
 
 def get_ai_completion(command: str, config: Optional[Dict] = None) -> str:

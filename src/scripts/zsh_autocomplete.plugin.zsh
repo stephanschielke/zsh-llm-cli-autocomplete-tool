@@ -23,6 +23,8 @@ fi
 export MODEL_COMPLETION_PROJECT_DIR="$PROJECT_DIR"
 export MODEL_COMPLETION_SCRIPT="$PROJECT_DIR/src/model_completer/cli.py"
 export MODEL_COMPLETION_CONFIG="${MODEL_COMPLETION_CONFIG:-$HOME/.config/model-completer/config.yaml}"
+# Daemon port for low-latency completion (like Cursor: one server, Tab is fast)
+export MODEL_COMPLETION_DAEMON_PORT="${MODEL_COMPLETION_DAEMON_PORT:-11435}"
 
 # Verify script exists
 if [[ ! -f "$MODEL_COMPLETION_SCRIPT" ]]; then
@@ -122,34 +124,31 @@ _model_completion() {
     fi
 }
 
-# Completion with grey preview
+# Completion with grey preview (Cursor-style: ghost text, Tab accepts)
+# Prefer daemon for low latency; fallback to Python CLI
 _model_completion_simple() {
     if [[ -z "$BUFFER" || ${#BUFFER} -lt 2 ]]; then
         zle expand-or-complete
         return
     fi
     
-    # Get prediction
     local prediction
-    local output
-    output=$("$PYTHON_CMD" -W ignore::UserWarning -W ignore::DeprecationWarning -u "$MODEL_COMPLETION_SCRIPT" "$BUFFER" 2>&1)
-    local exit_code=$?
-    
-    # Check for errors
-    if [[ $exit_code -ne 0 ]] || echo "$output" | grep -qE "Traceback|Error|Exception|ModuleNotFoundError|ImportError"; then
-        echo "$output" > /tmp/model-completer-error.log 2>&1
-        zle expand-or-complete
-        return
+    # Try daemon first (fast: no process startup)
+    prediction=$(printf '%s' "$BUFFER" | curl -s -X POST --data-binary @- --max-time 3 "http://127.0.0.1:${MODEL_COMPLETION_DAEMON_PORT}/complete" 2>/dev/null)
+    if [[ -z "$prediction" || "$prediction" == "$BUFFER" || ${#prediction} -le ${#BUFFER} ]]; then
+        # Fallback: Python CLI
+        local output
+        output=$("$PYTHON_CMD" -W ignore::UserWarning -W ignore::DeprecationWarning -u "$MODEL_COMPLETION_SCRIPT" "$BUFFER" 2>&1)
+        local exit_code=$?
+        if [[ $exit_code -ne 0 ]] || echo "$output" | grep -qE "Traceback|Error|Exception|ModuleNotFoundError|ImportError"; then
+            echo "$output" > /tmp/model-completer-error.log 2>&1
+            zle expand-or-complete
+            return
+        fi
+        prediction=$(echo "$output" | \
+            grep -vE "(Traceback|Error|Exception|ModuleNotFound|^<frozen|^RuntimeWarning|^Warning:|^DEBUG|^INFO|^ERROR|^WARNING|^Loading|^Using|^Model|^tokenizer|^device|^torch|^transformers|^File|^  File|^    |^  at|^During handling)" | \
+            grep -vE "^[0-9]{4}-[0-9]{2}-[0-9]{2}" | grep -v "^$" | grep -E "^[a-zA-Z].*" | head -1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
     fi
-    
-    # Extract prediction
-    prediction=$(echo "$output" | \
-        grep -vE "(Traceback|Error|Exception|ModuleNotFound|ImportError|^<frozen|^RuntimeWarning|^Warning:|^DEBUG|^INFO|^ERROR|^WARNING|^Loading|^Using|^Model|^tokenizer|^device|^torch|^transformers|^File|^  File|^    |^  at|^During handling)" | \
-        grep -vE "^[0-9]{4}-[0-9]{2}-[0-9]{2}" | \
-        grep -v "^$" | \
-        grep -E "^[a-zA-Z].*" | \
-        head -1 | \
-        sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
     
     if [[ -n "$prediction" && "$prediction" != "$BUFFER" && ${#prediction} -gt ${#BUFFER} ]]; then
         local original_len=${#BUFFER}

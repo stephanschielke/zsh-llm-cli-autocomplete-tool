@@ -71,17 +71,22 @@ python -m model_completer.cli --import-to-ollama
 
 ## Usage
 
-### Tab Completion
+### Tab Completion (Cursor-style)
 
-Simply type a command and press Tab:
-- First Tab: Shows grey preview of predicted completion
-- Second Tab (or Enter): Accepts the completion
+Like Cursor or Copilot: the model predicts the rest of the command and shows it as **grey ghost text**; **Tab** accepts it.
 
-The system learns from your command history and provides personalized predictions based on:
-- Your previous commands
-- Current project context (Git status, project type)
-- Command sequence patterns
-- Workflow patterns
+- Type a partial command (e.g. `git ad`) and press **Tab**.
+- Grey text appears with the completion (e.g. `git add .`). Press **Tab** again (or Enter) to accept.
+- One merged model (base + adapter) does the completion; no extra layers.
+
+**For lower latency**, run the completion daemon so each Tab doesn’t start a new Python process:
+
+```bash
+python -m model_completer.daemon
+# or: ./scripts/run_completion_daemon.sh
+```
+
+Leave it running; the plugin will use it when available. See [docs/INLINE_COMPLETION.md](docs/INLINE_COMPLETION.md) for how this matches Cursor-style inline completion.
 
 ### Smart Commit Messages
 
