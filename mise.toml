@@ -1,84 +1,90 @@
 [settings]
 experimental = true
 unix_default_inline_shell_args = "zsh -c"
-# unix_default_inline_shell_args = "zsh"
-status.show_prepare_stale = false
-pipx.uvx = true
 
 [tools]
-# python = { version = ">=3.8", postinstall = "mise sync python --uv" }
-uv = { version = "latest", postinstall = { task = "init" } }
-ruff = "latest"
+uv = "latest"
+# ollama = "latest"
 
 [settings.python]
 uv_venv_auto = "create|source"
 uv_venv_create_args = [
-    "--verbose",
+    #"--verbose",
+    "--quiet",
     "--seed",
-    "--python-preference=only-managed",
-    #"--quiet",
-    "--allow-existing",
-    "--python='>=3.8,<3.10'"
+    "--allow-existing"
 ]
-
-
-#[prepare.uv]
-#description = """
-#https://mise.jdx.dev/dev-tools/prepare.html#built-in-providers
-#https://mise.jdx.dev/configuration.html#idiomatic-version-files
-#"""
-#auto = false
-#sources = ["pyproject.toml", "uv.lock"]
-#outputs = [".venv/", "uv.lock"]
-#run = "uv lock && uv sync"
-#
-
-[hooks]
-enter = [
-    { task = "uv-ensure-venv" },
-    { script = "source .venv/bin/activate", shell = "zsh" },
-    { script = "which python", shell = "zsh -c" }
-]
-leave = { script = "[[ -n \"$VIRTUAL_ENV\" ]] && deactivate", shell = "zsh" }
-
-[tasks.uv-ensure-venv]
-# silent = true
-# tools.uv = "latest"
-# raw = true
-dir = "{{config_root}}"
-shell = "mise exec -- zsh -c"
-run = "uv venv --verbose --allow-existing --python=\">=3.8,<3.10\""
-
-[tasks.uv-source-venv]
-dir = "{{config_root}}"
-shell = "mise exec -- zsh -c"
-#raw = true
-run = "source .venv/bin/activate"
 
 [tasks.install-dependencies]
-shell = "mise exec -- zsh -c"
-run = "uv lock && uv sync"
+run = """
+uv lock
+if [[ "${INSTALL_TRAINING_DEPS:-0}" = "1" ]]; then
+    uv sync --extra="training"
+else
+    uv sync
+fi
+# Install this pyproject as `model-cli-autocomplete` package
+uv pip install --editable .
+"""
+
+[tasks.install-ollama]
+run = """
+if [[ -z "$(command -v ollama)" ]]; then
+    echo "Installing ollama..."
+    curl -s https://ollama.ai/install | sh
+fi
+"""
+
+[tasks.setup-ollama]
+run = """
+#!/usr/bin/env -S uv run --script
+import sys
+sys.path.insert(0, 'src')
+from model_completer.ollama_manager import create_ollama_manager
+
+manager = create_ollama_manager()
+if not manager.is_installed():
+    print('Installing Ollama...')
+    if manager.install():
+        print('Ollama installed successfully')
+    else:
+        print('Failed to install Ollama')
+        sys.exit(1)
+else:
+    print('Ollama already installed')
+
+if not manager.is_running():
+    print('Starting Ollama server...')
+    if manager.start_server():
+        print('Ollama server started')
+    else:
+        print('Failed to start Ollama server')
+        sys.exit(1)
+else:
+    print('Ollama server already running')
+
+print('Setting up default models...')
+if manager.setup_default_models():
+    print('Default models setup completed')
+else:
+    print('Failed to setup default models')
+
+"""
+
+[tasks.generate-training-data]
+run = "model-completer --generate-data"
+
 
 [env]
-# _.python.venv = { path = ".venv", create = false }
+# MISE_VERBOSE = true
+# UV_MANAGED_PYTHON = true
 PYTHONPATH = "{{config_root}}"
+
 INSTALL_TRAINING_DEPS = "1"
+GENERATE_TRAINING_DATA = "1"
+
 OLLAMA_HOST = "127.0.0.1"
 OLLAMA_PORT = "11434"
+
 MODEL_COMPLETION_DAEMON_PORT = "11435"
-# MISE_VERBOSE = true
 
-
-
-
-[tasks.start-model-completion-daemon]
-run = '''
-
-'''
-
-
-
-[tasks.install-the-old-way]
-run = '''
-sh ./install.sh
-'''
