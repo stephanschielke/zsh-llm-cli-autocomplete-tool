@@ -9,7 +9,7 @@ _FALLBACK = {
     "git add ": "git add .",
     "git stat": "git status",
     "git status": "git status",
-    "git comm": "git commit -m \"message\"",
+    "git comm": 'git commit -m "message"',
     "git push": "git push origin main",
     "git pull": "git pull origin main",
     "git log": "git log --oneline",
@@ -38,6 +38,7 @@ _PROMPT_TEMPLATE = (
 def complete(command: str, url: str, model: str, timeout: int = 3) -> Optional[str]:
     """Call Ollama with training-style prompt; return one completed line or None."""
     import requests
+
     prompt = _PROMPT_TEMPLATE.format(input=command.strip())
     data = {
         "model": model,
@@ -46,9 +47,13 @@ def complete(command: str, url: str, model: str, timeout: int = 3) -> Optional[s
         "stream": False,
         "options": {
             "temperature": 0.2,
-            "num_predict": 64,
-            "num_ctx": 512,
+            #"num_predict": 64,
+            "num_predict": 500,
+            ## TODO this should be configurable
+            # "num_ctx": 512,
+            "num_ctx": 50000,
             "repeat_penalty": 1.2,
+            "keep_alive": "-1m",
             "stop": ["\n\n", "\nInput:", "Input:"],
         },
     }
@@ -68,12 +73,19 @@ def complete(command: str, url: str, model: str, timeout: int = 3) -> Optional[s
             return first_line
         # Suffix-only: e.g. " add ." or "commit message" -> prepend first word with space
         if first_word and first_line and not first_line.startswith(first_word):
-            if first_line.startswith(" ") or (first_line[0].isalpha() and first_line.lower() != first_word.lower()):
+            if first_line.startswith(" ") or (
+                first_line[0].isalpha() and first_line.lower() != first_word.lower()
+            ):
                 full = (first_word + " " + first_line.lstrip()).strip()
                 if len(full) > len(command):
                     return full
         # Only accept model line if it extends the exact prefix (avoid "git add" -> "git commit...")
-        if first_line and prefix and first_line.startswith(prefix) and len(first_line) > len(prefix):
+        if (
+            first_line
+            and prefix
+            and first_line.startswith(prefix)
+            and len(first_line) > len(prefix)
+        ):
             return first_line
         # Model returned nothing or unusable; use fallback for known prefixes
         key = command.strip()
@@ -88,4 +100,11 @@ def complete(command: str, url: str, model: str, timeout: int = 3) -> Optional[s
         return best
     except Exception:
         key = command.strip()
-        return _FALLBACK.get(key) or next((_FALLBACK[p] for p in sorted(_FALLBACK, key=len, reverse=True) if key.startswith(p) or p.startswith(key)), None)
+        return _FALLBACK.get(key) or next(
+            (
+                _FALLBACK[p]
+                for p in sorted(_FALLBACK, key=len, reverse=True)
+                if key.startswith(p) or p.startswith(key)
+            ),
+            None,
+        )
