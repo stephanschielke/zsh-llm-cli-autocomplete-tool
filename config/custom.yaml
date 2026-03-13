@@ -1,0 +1,16 @@
+ollama:
+  url: "http://localhost:11434"
+  timeout: 10
+
+model: "zsh-assistant"
+
+# Hugging Face repository ID for pre-trained LoRA adapter
+hf_lora_repo: "arnonym/zsh-llm-cli-automation-lora"
+
+cache:
+  enabled: true
+  ttl: 3600
+
+logging:
+  level: "INFO"
+  file: "~/.cache/model-completer/logs.txt"
