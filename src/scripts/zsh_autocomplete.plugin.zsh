@@ -277,12 +277,13 @@ ai-completion-data() {
         _model_completion_start_ollama > /dev/null 2>&1
         sleep 2
     fi
-    
+
+    # TODO never output here since it will screw with the powerlevel instant prompt setup for our zsh
     if _model_completion_check_ollama; then
         if _model_completion_check_model; then
-            echo "✅ AI Autocomplete ready"
+            # echo "✅ AI Autocomplete ready"
         else
-            echo "⚠️  AI Autocomplete ready (run 'ai-completion-setup' to load model)"
+            # echo "⚠️  AI Autocomplete ready (run 'ai-completion-setup' to load model)"
         fi
     fi
 } &!
